@@ -6,7 +6,7 @@ import { current } from "@reduxjs/toolkit";
 function Calendar() {
   const [date, setDate] = useState(new Date());
   const [weekdays, setWeekdays] = useState([]);
-  const [lastDayOfMonth, setLastDayOfMonth] = useState({ first: 0, last: 0 });
+  const [lastDayOfMonth, setLastDayOfMonth] = useState(0);
   const [nameOfFirstDayOfMonth, setNameOfFirstDayOfMonth] = useState("");
   let firstDayFound = false;
   let currentDay = 1;
@@ -16,11 +16,19 @@ function Calendar() {
     loadWeekDays();
   }, []);
 
+  const reset = () => {
+    firstDayFound = false;
+    currentDay = 1;
+    currentWeekday = 0;
+  };
+
   const changeMonth = (operation) => {
     const newMonth =
-      operation === "sub" ? date.getMonth() - 2 : date.getMonth() + 1;
+      operation === "sub" ? date.getMonth() - 1 : date.getMonth() + 1;
     const newDate = new Date(date.setMonth(newMonth));
+    reset();
     setDate(newDate);
+    fetchFirstAndLastDay();
   };
 
   const getMonthLocaleName = () => {
@@ -36,17 +44,38 @@ function Calendar() {
       days.push(dayName);
     }
     setWeekdays(days);
+    fetchFirstAndLastDay();
+  };
 
+  const fetchFirstAndLastDay = () => {
     const year = date.getFullYear();
     const monthFirstDay = new Date(year, date.getMonth(), 1);
     setNameOfFirstDayOfMonth(getDayName(monthFirstDay));
-    const monthLastDay = new Date(year, date.getMonth(), 0).getDate();
+    const monthLastDay = new Date(year, date.getMonth() + 1, 0).getDate();
     setLastDayOfMonth(monthLastDay);
   };
 
   const getDayName = (date) => {
     const dayName = date.toLocaleString("default", { weekday: "short" });
     return dayName.toUpperCase();
+  };
+
+  const organizeDays = () => {
+    const isDayTheFirstOfMonth =
+      weekdays[currentWeekday] === nameOfFirstDayOfMonth;
+    const fetchedAllDaysOfMonth = currentDay >= lastDayOfMonth;
+    if (fetchedAllDaysOfMonth) {
+      return <p></p>;
+    } else if (firstDayFound) {
+      currentDay += 1;
+      return <button>{currentDay}</button>;
+    } else if (isDayTheFirstOfMonth) {
+      firstDayFound = true;
+      return <button>{currentDay}</button>;
+    } else if (!firstDayFound) {
+      currentWeekday += 1;
+      return <p></p>;
+    }
   };
 
   return (
@@ -63,21 +92,7 @@ function Calendar() {
         {weekdays.map((day) => {
           return <p>{day}</p>;
         })}
-        {[...Array(lastDayOfMonth + 7)].map(() => {
-          if (currentDay > lastDayOfMonth) {
-            return <p></p>;
-          }
-          if (firstDayFound) {
-            currentDay += 1;
-            return <button>{currentDay}</button>;
-          } else if (weekdays[currentWeekday] == nameOfFirstDayOfMonth) {
-            firstDayFound = true;
-            return <button>{currentDay}</button>;
-          } else if (!firstDayFound) {
-            currentWeekday += 1;
-            return <p></p>;
-          }
-        })}
+        {[...Array(lastDayOfMonth + 7)].map(organizeDays)}
       </WeekDays>
     </Wrapper>
   );

@@ -7,6 +7,7 @@ export const Wrapper = styled.section`
 export const MonthWrapper = styled.div`
   display: flex;
   align-items: center;
+  margin: 0 auto;
 `;
 
 export const Month = styled.p`
@@ -28,4 +29,7 @@ export const WeekDays = styled.div`
 export const arrowStyle = {
   fontSize: "large",
   color: "action",
+  sx: {
+    cursor: "pointer",
+  },
 };
