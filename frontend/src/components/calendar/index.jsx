@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ArrowRight, ArrowLeft } from "@mui/icons-material";
 import { MonthWrapper, arrowStyle, Month, WeekDays, Wrapper } from "./styles";
-import { current } from "@reduxjs/toolkit";
+import { change } from "../../reducer/calendar/calendarReducer";
+import { useDispatch } from "react-redux";
 
 function Calendar() {
   const [date, setDate] = useState(new Date());
   const [weekdays, setWeekdays] = useState([]);
   const [lastDayOfMonth, setLastDayOfMonth] = useState(0);
   const [nameOfFirstDayOfMonth, setNameOfFirstDayOfMonth] = useState("");
+  const [currentDaySelected, setCurrentDaySelected] = useState(null);
+  const dispatch = useDispatch();
   let firstDayFound = false;
   let currentDay = 1;
   let currentWeekday = 0;
@@ -15,6 +18,35 @@ function Calendar() {
   useEffect(() => {
     loadWeekDays();
   }, []);
+
+  useEffect(() => {
+    // just runs after month changes
+    // enable changes on day selected, since it runs after the UI updates
+    if (currentDaySelected !== null) changeCurrentDay(currentDaySelected);
+  }, [date]);
+
+  const changeCurrentDay = (e) => {
+    const button = e.target ?? e;
+    const daySelected = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      button.textContent
+    );
+    console.log(daySelected);
+    dispatch(
+      change({
+        date: daySelected,
+      })
+    );
+    toggleDaySelectedStyle(button);
+  };
+
+  const toggleDaySelectedStyle = (button) => {
+    if (currentDaySelected !== null)
+      currentDaySelected.classList.remove("selected");
+    button.classList.add("selected");
+    setCurrentDaySelected(button);
+  };
 
   const reset = () => {
     firstDayFound = false;
@@ -68,10 +100,10 @@ function Calendar() {
       return <p></p>;
     } else if (firstDayFound) {
       currentDay += 1;
-      return <button>{currentDay}</button>;
+      return <button onClick={(e) => changeCurrentDay(e)}>{currentDay}</button>;
     } else if (isDayTheFirstOfMonth) {
       firstDayFound = true;
-      return <button>{currentDay}</button>;
+      return <button onClick={(e) => changeCurrentDay(e)}>{currentDay}</button>;
     } else if (!firstDayFound) {
       currentWeekday += 1;
       return <p></p>;
